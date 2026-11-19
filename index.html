@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#0f1112" />
+    <meta name="description" content="A simple place for what needs doing." />
+    <title>Tasks</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script>document.documentElement.classList.add("js");</script>
+    <link rel="stylesheet" href="styles.css?v=4" />
+  </head>
+  <body>
+    <main class="space">
+      <div class="composer-wrap" id="composerWrap">
+        <form class="composer" id="composer" autocomplete="off">
+          <span class="mark" aria-hidden="true">+</span>
+          <input
+            id="taskInput"
+            class="input"
+            type="text"
+            name="task"
+            placeholder="Add a task..."
+            maxlength="140"
+            aria-label="New task"
+            autocomplete="off"
+            spellcheck="false"
+            enterkeyhint="done"
+          />
+          <span class="hint" aria-hidden="true">↵</span>
+        </form>
+      </div>
+
+      <ul id="taskList" class="list" aria-live="off"></ul>
+      <p id="emptyState" class="empty" hidden>Nothing here yet.</p>
+    </main>
+
+    <div id="announcer" role="status" aria-live="polite" class="sr-only"></div>
+
+    <script src="config.js?v=4"></script>
+    <script src="app.js?v=4"></script>
+  </body>
+</html>
