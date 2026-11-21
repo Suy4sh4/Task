@@ -6,6 +6,7 @@ done and it disappears.
 - Zero build step — plain HTML, CSS and JavaScript.
 - Works fully offline with `localStorage`.
 - Optional cross-device sync through a free Supabase database.
+- Long-press a task for priority + group; toggle **Group** to group the list.
 
 ## Run locally
 
@@ -18,7 +19,7 @@ python -m http.server 8000   # visit http://localhost:8000
 ## Host on GitHub Pages
 
 1. Create a public repo (e.g. `my-tasks`) and upload every file in this folder,
-   including `.nojekyll`.
+   including `.nojekyll` and `apple-touch-icon.png`.
 2. **Settings → Pages → Deploy from a branch → main / (root) → Save.**
 3. Visit `https://<username>.github.io/my-tasks/` after a minute or two.
 
@@ -27,79 +28,85 @@ for ~10 minutes; if an update looks stale, wait or bump `?v=` in `index.html`.
 
 For a root URL, name the repo `<username>.github.io`.
 
+## Using it
+
+- **Add** — type and press Enter, or tap the ↑ button at the right of the input
+  (it lights up once you type something).
+- **Quick group** — type `#College` anywhere in a task to add it straight to
+  that group. The tag is stripped from the task text.
+- **Complete** — tap the circle; the row fades and disappears.
+- **Options** — tap the **⋯** button at the right of any task (or long-press the
+  row on phone / right-click on desktop). In the sheet you can:
+  - **Edit the task text**
+  - **Set priority** — High / Mid / Low / None (small colored dot on the row)
+  - **Set group** — type a name or tap an existing one
+  - **Delete** the task
+- **Group view** — tap **Group** at the top to group tasks by name. Tap again to
+  switch back. The preference is remembered on the device.
+
+Tasks are sorted by priority (High → Low → None), then by creation time.
+
+## iPhone home-screen icon
+
+Open the site in **Safari**, tap **Share → Add to Home Screen**. The icon comes
+from `apple-touch-icon.png`. If you already added the old bookmark, delete it
+from the home screen first and add it again to pick up the new icon.
+
 ---
 
-## Optional: sync across devices (Supabase)
+## Supabase sync (optional)
 
-Free tier is more than enough for a personal list. Takes ~3 minutes.
+Free tier is plenty. `config.js` is already filled with your credentials.
 
-### 1. Create the project
+### Database columns for priority + group
 
-1. Sign up at https://supabase.com and create a new project (pick any region,
-   set a database password).
-2. Wait for it to finish provisioning.
+In **Supabase → SQL Editor → New query**, run this once:
 
-### 2. Create the table
+```sql
+alter table tasks
+  add column if not exists priority text,
+  add column if not exists group_name text;
+```
 
-In the left sidebar open **SQL Editor → New query**, paste this, and click
-**Run**:
+The app keeps working offline and in local mode even before you run this.
+
+### Recreating the table from scratch
+
+If you ever need to start over:
 
 ```sql
 create table if not exists tasks (
   id text primary key,
   text text not null,
-  created_at bigint not null
+  created_at bigint not null,
+  priority text,
+  group_name text
 );
 
 alter table tasks enable row level security;
 
-create policy "personal task access"
-  on tasks for all
-  using (true)
-  with check (true);
+create policy "personal task access" on tasks for all
+  using (true) with check (true);
 ```
-
-### 3. Get your credentials
-
-**Settings → API** — copy:
-
-- **Project URL** → e.g. `https://abcdefgh.supabase.co`
-- **anon / public key** → the long `eyJ...` string
-
-### 4. Put them in the app
-
-Open `config.js` and fill in:
-
-```js
-window.TASKS_CONFIG = {
-  supabaseUrl: "https://abcdefgh.supabase.co",
-  supabaseAnonKey: "eyJ...",
-  pollMs: 4000,
-};
-```
-
-Save and republish (GitHub Pages may take ~10 min to show the change).
-
-That's it. Add a task on your PC and it appears on your phone within ~4 seconds.
 
 ### How sync behaves
 
 - Tasks are written locally first, then pushed — the UI never waits on the network.
-- If you're offline, changes queue in `localStorage` and flush when you reconnect.
+- If you're offline, changes queue and flush when you reconnect.
 - Each device checks the server every 4 seconds.
-- Leaving `config.js` blank keeps the app 100% local, exactly as before.
+- Leaving `config.js` blank keeps the app 100% local.
 
 ### Security note
 
-The anon key is public in the page source, and the policy above allows anyone
-with that key to read/write the table. This is fine for a personal app whose URL
-isn't shared, but it is **not** authentication. If you ever publish the URL
-publicly, add a login (Supabase Auth) or a stricter policy.
+The publishable key is public in the page source, and the policy above allows
+anyone with that key to read/write the table. Fine for a personal, unshared URL.
+Never put the **secret** key in browser code.
 
 ## Files
 
-- `index.html` — markup and config includes
-- `config.js` — your Supabase credentials (optional)
-- `styles.css` — theme, responsive layout, restrained motion
-- `app.js` — storage, rendering, sync, focus and announcements
-- `favicon.svg`, `.nojekyll`, `README.md`
+- `index.html` — markup, icon links, sheet markup
+- `styles.css` — theme, responsive layout, groups, sheet, restrained motion
+- `app.js` — storage, rendering, long-press, grouping, sync, accessibility
+- `config.js` — Supabase credentials
+- `apple-touch-icon.png`, `favicon.svg`, `.nojekyll`
+- `domain-task.is-a.dev.json` — ready-to-submit is-a.dev domain record
