@@ -14,7 +14,11 @@ export function TaskSheet({name,values,groups,save,close}:{name:string;values:Va
     document.body.style.overflow='hidden'
     return()=>{document.body.style.overflow=previous}
   },[])
-  return <div className="sheet-backdrop" onPointerDown={e=>{if(e.target===e.currentTarget)close()}}>
+  return <div
+    className="sheet-backdrop"
+    onPointerDown={e=>{if(e.target===e.currentTarget)close()}}
+    onClick={e=>{if(e.target===e.currentTarget)close()}}
+  >
     <div className="sheet" ref={sheet} tabIndex={-1} role="dialog" aria-modal="true" aria-label={'Options for '+name} onKeyDown={e=>{if(e.key==='Escape')close()}}>
       <div className="grabber" aria-hidden="true"/>
       <div className="sheet-head"><strong>Task details</strong><button type="button" onClick={close}>Cancel</button></div>
