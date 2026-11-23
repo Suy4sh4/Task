@@ -64,6 +64,10 @@ li{border:0}
 .sheet{width:100%;max-width:520px;padding:8px 18px max(8px, env(safe-area-inset-bottom));border:1px solid #3a3e3a;border-bottom:0;border-radius:22px 22px 0 0;background:var(--surface);box-shadow:0 -20px 60px #0009;outline:none;animation:sheet-in .28s cubic-bezier(.2,.9,.25,1);cursor:default;touch-action:auto}
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
 @keyframes sheet-in{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-backdrop.closing{animation:fade-out .23s ease forwards;pointer-events:none}
+.sheet-backdrop.closing .sheet{animation:sheet-out .23s cubic-bezier(.4,0,.7,.2) forwards}
+@keyframes fade-out{from{opacity:1}to{opacity:0}}
+@keyframes sheet-out{from{transform:translateY(0)}to{transform:translateY(100%)}}
 @media (prefers-reduced-motion:reduce){.sheet,.sheet-backdrop{animation:none}}
 .grabber{width:36px;height:5px;margin:0 auto 8px;border-radius:5px;background:#555b55}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:44px}

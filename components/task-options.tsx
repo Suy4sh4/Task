@@ -7,16 +7,31 @@ export function TaskSheet({name,values,groups,save,close}:{name:string;values:Va
   const [priority,setPriority]=useState(values.priority)
   const [category,setCategory]=useState(values.category)
   const [custom,setCustom]=useState(values.category!==''&&!groups.includes(values.category))
+  const [closing,setClosing]=useState(false)
   const sheet=useRef<HTMLDivElement>(null)
+  const timer=useRef<ReturnType<typeof setTimeout>|null>(null)
+
   useEffect(()=>{
     sheet.current?.focus({preventScroll:true})
     const previous=document.body.style.overflow
     document.body.style.overflow='hidden'
-    return()=>{document.body.style.overflow=previous}
+    return()=>{
+      document.body.style.overflow=previous
+      if(timer.current)clearTimeout(timer.current)
+    }
   },[])
+
+  const reduce=typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  function requestClose(after?:()=>void){
+    if(closing)return
+    setClosing(true)
+    timer.current=setTimeout(()=>{if(after)after();else close()},reduce?0:230)
+  }
+
   return <div
-    className="sheet-backdrop"
-    onClick={close}
+    className={'sheet-backdrop'+(closing?' closing':'')}
+    onClick={()=>requestClose()}
   >
     <div
       className="sheet"
@@ -26,12 +41,15 @@ export function TaskSheet({name,values,groups,save,close}:{name:string;values:Va
       aria-modal="true"
       aria-label={'Options for '+name}
       onClick={e=>e.stopPropagation()}
-      onKeyDown={e=>{if(e.key==='Escape')close()}}
+      onKeyDown={e=>{if(e.key==='Escape')requestClose()}}
     >
       <div className="grabber" aria-hidden="true"/>
-      <div className="sheet-head"><strong>Task details</strong><button type="button" onClick={close}>Cancel</button></div>
+      <div className="sheet-head"><strong>Task details</strong><button type="button" onClick={()=>requestClose()}>Cancel</button></div>
       <p className="sheet-task">{name}</p>
-      <form onSubmit={e=>{e.preventDefault();save({priority,category:category.trim()})}}>
+      <form onSubmit={e=>{
+        e.preventDefault()
+        requestClose(()=>save({priority,category:category.trim()}))
+      }}>
         <div className="field">
           <label htmlFor="sheet-priority"><span className={'priority-dot'+(priority?' '+priority.toLowerCase():'')} aria-hidden="true"/>Priority</label>
           <select id="sheet-priority" value={priority} onChange={e=>setPriority(e.target.value)}>
