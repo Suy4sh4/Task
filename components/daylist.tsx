@@ -12,6 +12,9 @@ const POLL_MS=5000
 function fromRow(r:Row):Task{return{id:r.id,text:r.text,priority:r.priority??'',category:r.group_name??''}}
 function toRow(t:Task):Omit<Row,'created_at'>{return{id:t.id,text:t.text,priority:t.priority||null,group_name:t.category||null}}
 
+const PRIORITY_RANK:Record<string,number>={high:0,mid:1,medium:1,low:2}
+function priorityRank(p:string){const v=p.trim().toLowerCase();return v in PRIORITY_RANK?PRIORITY_RANK[v]:3}
+
 function buzz(){try{if(typeof navigator!=='undefined'&&'vibrate' in navigator)navigator.vibrate(12)}catch{}}
 
 function TaskRow({task,onOpen,onComplete}:{task:Task;onOpen:()=>void;onComplete:()=>void}){
@@ -125,7 +128,12 @@ export function Daylist(){
     <section aria-label="Task list">
       {!tasks.length&&<p className="empty">No tasks.</p>}
       {sections.map(s=>{
-        const items=tasks.filter(t=>!grouped||t.category===s),collapsed=grouped&&closed.includes(s)
+        // Without groups, order by priority: High → Medium → Low → None.
+        // Within the same priority, keep the existing creation order.
+        const items=grouped
+          ? tasks.filter(t=>t.category===s)
+          : tasks.slice().sort((a,b)=>priorityRank(a.priority)-priorityRank(b.priority))
+        const collapsed=grouped&&closed.includes(s)
         return <div key={s}>
           {grouped&&<button className="group-title" aria-expanded={!collapsed} onClick={()=>{setEditing(null);setClosed(cs=>cs.includes(s)?cs.filter(c=>c!==s):[...cs,s])}}><ChevronRight size={14}/><strong>{s||'Uncategorized'}</strong><span>{items.length} {items.length===1?'task':'tasks'}</span></button>}
           {!collapsed&&<ul>{items.map(t=><li key={t.id} id={'task-'+t.id}><TaskRow task={t} onOpen={()=>setEditing(t.id)} onComplete={()=>complete(t.id)}/></li>)}</ul>}
